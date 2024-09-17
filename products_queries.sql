@@ -10,7 +10,7 @@ INSERT INTO products (name, price, category_id) VALUES
 ('Chocolate Bar', 2.50, 2),
 ('Milk', 3.20, 3),
 ('Apple', 1.50, 4),
-('Carrot', 0.99, 5)
+('Carrot', 0.99, 5),
 ('Coca Cola', 1.50, 1),    -- Beverages
 ('Pepsi', 1.40, 1),        -- Beverages
 ('Water Bottle', 0.99, 1), -- Beverages
@@ -38,7 +38,7 @@ INSERT INTO nutritions (product_id, name, calories, fats, sugar) VALUES
 (2, 'Chocolate Bar', 220, 12, 18),
 (3, 'Milk', 150, 8, 12),
 (4, 'Apple', 95, 0.3, 19),
-(5, 'Carrot', 41, 0.1, 5)
+(5, 'Carrot', 41, 0.1, 5),
 (6, 'Coca Cola', 140, 0, 39),      -- Coca Cola
 (7, 'Pepsi', 150, 0, 41),          -- Pepsi
 (8, 'Water Bottle', 0, 0, 0),      -- Water Bottle
