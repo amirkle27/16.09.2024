@@ -61,11 +61,11 @@ INSERT INTO nutritions (product_id, name, calories, fats, sugar) VALUES
 (25, 'Strawberries', 53, 0.5, 8);  -- Strawberries
 
 INSERT INTO orders (date_time, address, customer_name, customer_ph, total_price) VALUES
-('2024-09-17 10:30', '123 Main St', 'John Doe', '555-1234', 25.67),
-('2024-09-17 11:45', '456 Oak St', 'Jane Smith', '555-5678', 15.30),
-('2024-09-17 12:15', '789 Pine St', 'Emily Davis', '555-8765', 9.99),
-('2024-09-17 13:00', '321 Elm St', 'Michael Johnson', '555-4321', 20.10),
-('2024-09-17 13:30', '654 Maple St', 'Sarah Wilson', '555-6789', 30.55);
+('2024-09-17 10:30', '123 Main St', 'John Doe', '555-1234', 30.08),
+('2024-09-17 11:45', '456 Oak St', 'Jane Smith', '555-5678', 20.13),
+('2024-09-17 12:15', '789 Pine St', 'Emily Davis', '555-8765', 22.22),
+('2024-09-17 13:00', '321 Elm St', 'Michael Johnson', '555-4321', 15.15),
+('2024-09-17 13:30', '654 Maple St', 'Sarah Wilson', '555-6789', 30.99);
 
 INSERT INTO products_orders (order_id, product_id, amount) VALUES
 (1, 1, 2),
