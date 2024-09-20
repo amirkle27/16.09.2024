@@ -1,3 +1,46 @@
+CREATE TABLE products (
+    product_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    price INTEGER NOT NULL,
+    category_id INTEGER,
+    FOREIGN KEY (category_id)  REFERENCES category (category_id)
+    );
+
+CREATE TABLE category (
+    category_id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL
+    );
+
+CREATE TABLE nutritions (
+    nutrition_id INTEGER PRIMARY KEY,
+    product_id INTEGER,
+    name TEXT NOT NULL,
+    calories INTEGER NOT NULL,
+    fats INTEGER,
+    sugar INTEGER,
+    FOREIGN KEY (product_id)  REFERENCES products (product_id)
+
+    );
+
+CREATE TABLE orders (
+    order_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date_time TEXT NOT NULL,
+    address TEXT NOT NULL,
+    customer_name TEXT NOT NULL,
+    customer_ph INTEGER NOT NULL,
+    total_price INTEGER NOT NULL
+    );
+
+CREATE TABLE products_orders
+(
+    amount     INTEGER NOT NULL,
+    product_id INTEGER,
+    order_id   INTEGER,
+    PRIMARY KEY (product_id, order_id),
+    FOREIGN KEY (order_id) REFERENCES orders (order_id),
+    FOREIGN KEY (product_id) REFERENCES products (product_id)
+);
+
 INSERT INTO category (name) VALUES
 ('Beverages'),
 ('Snacks'),
@@ -61,11 +104,12 @@ INSERT INTO nutritions (product_id, name, calories, fats, sugar) VALUES
 (25, 'Strawberries', 53, 0.5, 8);  -- Strawberries
 
 INSERT INTO orders (date_time, address, customer_name, customer_ph, total_price) VALUES
-('2024-09-17 10:30', '123 Main St', 'John Doe', '555-1234', 30.08),
-('2024-09-17 11:45', '456 Oak St', 'Jane Smith', '555-5678', 20.13),
-('2024-09-17 12:15', '789 Pine St', 'Emily Davis', '555-8765', 22.22),
-('2024-09-17 13:00', '321 Elm St', 'Michael Johnson', '555-4321', 15.15),
-('2024-09-17 13:30', '654 Maple St', 'Sarah Wilson', '555-6789', 30.99);
+('2024-09-17 10:30', '123 Main St', 'John Doe', '555-1234', 25.67),
+('2024-09-17 11:45', '456 Oak St', 'Jane Smith', '555-5678', 15.30),
+('2024-09-17 12:15', '789 Pine St', 'Emily Davis', '555-8765', 9.99),
+('2024-09-17 13:00', '321 Elm St', 'Michael Johnson', '555-4321', 20.10),
+('2024-09-17 13:30', '654 Maple St', 'Sarah Wilson', '555-6789', 30.55);
+
 
 INSERT INTO products_orders (order_id, product_id, amount) VALUES
 (1, 1, 2),
@@ -97,3 +141,167 @@ INSERT INTO products_orders (order_id, product_id, amount) VALUES
 (4, 24, 1),    -- Pineapple
 (5, 25, 2);    -- Strawberries
 
+links between tables:
+products - category (one to many)
+products - nutritions (many to many)
+products - products_orders (many to many)
+orders - products_orders (one to many)
+
+-- d.i
+SELECT p.product_id, p.name AS product_name, c.category_id, c.name AS category_name, n.*
+FROM products p
+JOIN category c ON p.category_id = c.category_id
+JOIN nutritions n ON p.product_id = n.product_id;
+
+-- ii
+SELECT p.*, o.*,po.amount
+FROM products p
+JOIN products_orders po ON p.product_id = po.product_id
+JOIN orders o ON o.order_id = po.order_id
+ORDER BY order_id;
+
+-- iii
+INSERT INTO products_orders (order_id, product_id, amount) VALUES
+    (1,25,10),
+    (2,16,8),
+    (3,15,6),
+    (4,10,4),
+    (5,18,2);
+
+-- iv
+UPDATE orders
+SET total_price =
+    (SELECT SUM(p.price * po.amount)
+     FROM products_orders po
+     JOIN products p on p.product_id = po.product_id
+     WHERE po.order_id = orders.order_id);
+
+SELECT order_id, total_price
+FROM orders;
+
+-- v
+SELECT o.order_id, o.total_price As 'Max Price'
+FROM orders o
+WHERE o.total_price = (SELECT MAX(total_price) FROM orders)
+
+SELECT o.order_id, o.total_price AS 'Min Price'
+FROM orders o
+WHERE o.total_price = (SELECT MIN(total_price) FROM orders)
+
+SELECT avg(o.total_price) AS 'Average Price'
+FROM orders o
+
+-- vi
+SELECT o.customer_name ,COUNT (o.order_id) AS order_count
+FROM orders o
+GROUP BY o.customer_name
+HAVING COUNT (o.order_id) =
+       (SELECT MAX (order_count)
+        FROM (SELECT COUNT (o.order_id) AS order_count
+        FROM orders o
+        GROUP BY o.customer_name) AS counts
+        )
+
+-- vii
+SELECT p.product_id, p.name AS 'Product Name', COUNT (o.order_id) AS order_count_max
+FROM products p
+JOIN products_orders po ON p.product_id  = po.product_id
+JOIN orders o ON o.order_id = po.order_id
+GROUP BY p.product_id
+HAVING COUNT (o.order_id) =
+    (SELECT MAX (order_count)
+        FROM
+        (SELECT COUNT (po2.order_id) AS order_count
+        FROM products_orders po2
+        GROUP BY po2.product_id)
+            AS max_orders)
+
+SELECT p.product_id, p.name AS 'Product Name', COUNT(o.order_id) AS order_count_min
+FROM products p
+JOIN products_orders po ON p.product_id = po.product_id
+JOIN orders o ON o.order_id = po.order_id
+GROUP BY p.product_id
+HAVING COUNT(o.order_id) =
+       (SELECT MIN(order_count)
+            FROM
+            (SELECT COUNT(po2.order_id) AS order_count
+             FROM products_orders po2
+             GROUP BY po2.product_id) AS min_orders)
+
+SELECT p.product_id, p.name AS 'Product Name', COUNT(o.order_id) AS order_count
+FROM products p
+JOIN products_orders po ON p.product_id = po.product_id
+JOIN orders o ON o.order_id = po.order_id
+GROUP BY p.product_id
+HAVING COUNT(o.order_id) =
+        (SELECT AVG(order_count)
+         FROM (SELECT COUNT(po2.order_id) AS order_count
+               FROM products_orders po2
+               GROUP BY po2.product_id) AS avg_orders)
+
+-- viii
+
+SELECT SUM(po.amount) AS total_products,c.category_id, c.name AS category_name
+              FROM products_orders po
+              JOIN products p ON po.product_id = p.product_id
+              JOIN category c ON c.category_id=p.category_id
+              GROUP BY p.category_id
+              ORDER BY  total_products DESC
+              LIMIT 1
+
+-- OR:
+
+SELECT c.category_id, c.name AS category_name, SUM(po.amount) AS total_sales_for_category
+FROM category c
+JOIN products p ON c.category_id = p.category_id
+JOIN products_orders po ON p.product_id = po.product_id
+GROUP BY c.name
+HAVING SUM(po.amount) =
+       (SELECT MAX(total_sales)
+        FROM (SELECT SUM(po2.amount) AS total_sales
+              FROM products_orders po2
+                       JOIN products p2 ON po2.product_id = p2.product_id
+              GROUP BY p2.category_id))
+
+
+SELECT c.category_id, c.name AS category_name, SUM(po.amount) AS total_sales
+FROM category c
+JOIN products p ON p.category_id = c.category_id
+JOIN products_orders po ON p.product_id = po.product_id
+GROUP BY c.name
+ORDER BY total_sales
+LIMIT 1
+
+-- OR:
+
+SELECT c.category_id, c.name AS category_name, SUM(po.amount) AS total_products
+FROM category c
+JOIN products p ON c.category_id = p.category_id
+JOIN products_orders po ON p.product_id=po.product_id
+GROUP BY category_name
+HAVING SUM(po.amount) =
+       (SELECT MIN(total_sales)
+        FROM (SELECT SUM(po2.amount) AS total_sales
+        FROM products_orders po2
+        JOIN products p2
+        ON po2.product_id = p2.product_id
+        GROUP BY p2. category_id))
+
+
+SELECT p.name AS product_name ,SUM(po.amount) AS total_purchases
+FROM products p
+JOIN products_orders po ON p.product_id = po.product_id
+GROUP BY p.name
+ORDER BY total_purchases DESC
+
+-- OR:
+
+SELECT p.product_id, p.name AS producte, SUM(po.amount) AS total_purchases
+FROM products p
+JOIN products_orders po on p.product_id = po.product_id
+GROUP BY p.name
+HAVING SUM(po.amount) =
+       (SELECT MAX(purchases)
+        FROM (SELECT SUM(po2.amount) AS purchases
+              FROM products_orders po2
+              GROUP BY po2.product_id))
