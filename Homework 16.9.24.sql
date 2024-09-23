@@ -225,16 +225,12 @@ HAVING COUNT(o.order_id) =
              FROM products_orders po2
              GROUP BY po2.product_id) AS min_orders)
 
-SELECT p.product_id, p.name AS 'Product Name', COUNT(o.order_id) AS order_count
-FROM products p
-JOIN products_orders po ON p.product_id = po.product_id
-JOIN orders o ON o.order_id = po.order_id
-GROUP BY p.product_id
-HAVING COUNT(o.order_id) = ROUND(
-        (SELECT AVG(order_count)
-         FROM (SELECT COUNT(po2.order_id) AS order_count
-               FROM products_orders po2
-               GROUP BY po2.product_id) AS avg_orders))
+SELECT AVG(total_sold)
+FROM (
+    SELECT sum(po.amount) as total_sold
+    FROM products_orders po
+    GROUP BY po.product_id
+);
 
 -- viii
 
