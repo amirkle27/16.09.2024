@@ -200,28 +200,28 @@ HAVING COUNT (o.order_id) =
         )
 
 -- vii
-SELECT p.product_id, p.name AS 'Product Name', COUNT (o.order_id) AS order_count_max
+SELECT p.product_id, p.name AS 'Product Name', SUM (o.order_id) AS order_count_max
 FROM products p
 JOIN products_orders po ON p.product_id  = po.product_id
 JOIN orders o ON o.order_id = po.order_id
 GROUP BY p.product_id
-HAVING COUNT (o.order_id) =
+HAVING SUM (o.order_id) =
     (SELECT MAX (order_count)
         FROM
-        (SELECT COUNT (po2.order_id) AS order_count
+        (SELECT SUM (po2.order_id) AS order_count
         FROM products_orders po2
         GROUP BY po2.product_id)
             AS max_orders)
 
-SELECT p.product_id, p.name AS 'Product Name', COUNT(o.order_id) AS order_count_min
+SELECT p.product_id, p.name AS 'Product Name', SUM(o.order_id) AS order_count_min
 FROM products p
 JOIN products_orders po ON p.product_id = po.product_id
 JOIN orders o ON o.order_id = po.order_id
 GROUP BY p.product_id
-HAVING COUNT(o.order_id) =
+HAVING SUM(o.order_id) =
        (SELECT MIN(order_count)
             FROM
-            (SELECT COUNT(po2.order_id) AS order_count
+            (SELECT SUM(po2.order_id) AS order_count
              FROM products_orders po2
              GROUP BY po2.product_id) AS min_orders)
 
